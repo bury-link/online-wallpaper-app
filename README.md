@@ -10,7 +10,8 @@ wallpaper**, on a schedule you choose. Your home screen wallpaper is never touch
 A single settings screen lets you:
 
 - **Image URL** — paste a direct link to a JPEG, PNG or WebP. Validated as an absolute `http(s)`
-  URL before the schedule can be turned on.
+  URL before the schedule can be turned on. Plain `http://` addresses work, including LAN hosts such
+  as `http://192.168.178.18/snapshot.jpg` — see [Cleartext HTTP](#cleartext-http).
 - **Refresh interval** — 15 minutes, 30 minutes, 1 hour, 6 hours, 12 hours or 1 day.
 - **Automatic refresh** — a toggle that starts and stops the periodic background work.
 - **Set now** — fetches and applies the wallpaper immediately, whether or not the schedule is on.
@@ -90,12 +91,45 @@ Settings screen ──> DataStore (url, interval, enabled, last success, last er
 | `SET_WALLPAPER` | Required by `WallpaperManager.setBitmap()`. |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Only to offer the exemption dialog from the hint card. |
 
-All four are install-time permissions, so there is no runtime prompt. No storage permission is
+All four are install-time permissions, so there is no runtime prompt. Cleartext HTTP is not a
+permission but is also declared in the manifest — see [Cleartext HTTP](#cleartext-http). No storage permission is
 needed: the only file the app keeps is a small preview thumbnail in the internal cache directory.
 
 The WorkManager library merges three more into the final manifest — `WAKE_LOCK`,
 `RECEIVE_BOOT_COMPLETED` and `FOREGROUND_SERVICE` — so that scheduled work survives a reboot. This
 app itself starts no foreground service and posts no notifications.
+
+## Cleartext HTTP
+
+The manifest sets `android:usesCleartextTraffic="true"` on `<application>`.
+
+Since Android 9 (API 28) the platform's default network security policy blocks unencrypted HTTP.
+Without this flag, any `http://` URL fails with:
+
+```
+CLEARTEXT communication to 192.168.178.18 not permitted by network security policy
+```
+
+The app exists to fetch an image from a URL the user types, and in practice that URL is often a
+plain-HTTP host on the local network — a camera snapshot endpoint, a NAS, a home server, a Raspberry
+Pi. Those hosts usually have no certificate at all. Because the destination is arbitrary and only
+known at runtime, a `networkSecurityConfig` with a `domain-config` allowlist cannot express it; the
+app-wide flag is the smallest configuration that makes the feature work.
+
+**What this means.** The flag *permits* cleartext, it does not force it. `https://` URLs are
+unchanged: they are still fetched over TLS with the platform's normal certificate validation. No
+certificate check is relaxed, no custom trust manager or hostname verifier is installed, and user-
+or app-added CAs are not trusted anywhere.
+
+**Security implication.** For an `http://` URL there is no encryption and no server authentication.
+Anyone on the network path — another device on the same Wi-Fi, the router, an ISP for a URL on the
+public internet — can see which URL is being fetched and can read or replace the image that comes
+back. The worst case is a wrong or hostile picture on your lock screen: the response is only ever
+decoded as a bitmap, and a body that is not a decodable image is reported as an error. Still, prefer
+`https://` for anything outside a network you control.
+
+Turning this off is a one-line change: remove `android:usesCleartextTraffic="true"` from
+`app/src/main/AndroidManifest.xml` and the app becomes HTTPS-only on Android 9+.
 
 ## Known limitations
 
@@ -124,6 +158,10 @@ app itself starts no foreground service and posts no notifications.
   `INTERNET` was needed. That is not correct — `WallpaperManager.setBitmap()` throws
   `SecurityException` without `android.permission.SET_WALLPAPER`. It is declared in the manifest.
   Android lint flags this too, so the omission would have failed the build.
+- **Cleartext HTTP is allowed app-wide.** Not a security oversight but the point of the feature:
+  user-supplied LAN URLs are almost always plain HTTP and their hosts cannot be enumerated in
+  advance, so a domain-scoped network security config is not an option. The trade-off is written up
+  under [Cleartext HTTP](#cleartext-http).
 - **`CANCEL_AND_REENQUEUE` over `UPDATE`.** The spec allowed either. Cancel-and-re-enqueue makes
   "next scheduled run" on the status screen mean what the user just chose, instead of continuing
   the period that was started under the old interval.

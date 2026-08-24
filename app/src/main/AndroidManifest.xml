@@ -18,6 +18,14 @@
         android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
         tools:ignore="BatteryLife" />
 
+    <!--
+      The image URL is entered by the user and is routinely a plain http:// address on the local
+      network (an http://192.168.x.x camera snapshot, a NAS, a home server). Since Android 9 the
+      platform blocks cleartext by default, so those URLs fail with "CLEARTEXT communication ... not
+      permitted by network security policy". The hosts cannot be known in advance, so no
+      domain-scoped network security config would help; cleartext is allowed app-wide. https:// URLs
+      are unaffected and are still preferred whenever the source offers them.
+    -->
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -26,7 +34,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.OnlineWallpaper">
+        android:theme="@style/Theme.OnlineWallpaper"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".ui.MainActivity"
