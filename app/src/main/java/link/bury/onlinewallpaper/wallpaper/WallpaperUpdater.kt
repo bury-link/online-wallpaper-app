@@ -47,16 +47,25 @@ class WallpaperUpdater(
             val decoded = decodeDownsampled(temporaryFile, targetWidth, targetHeight)
             bitmap = decoded
 
+            // Center-crop to the screen's aspect ratio and scale to the exact target size, so the
+            // wallpaper fills the lock screen without distortion.
+            val framed = cropAndScale(decoded, targetWidth, targetHeight)
+            if (framed !== decoded) {
+                decoded.recycle()
+                bitmap = framed
+            }
+
             try {
-                wallpaperManager.setBitmap(decoded, null, true, WallpaperManager.FLAG_LOCK)
+                wallpaperManager.setBitmap(framed, null, true, WallpaperManager.FLAG_LOCK)
             } catch (e: IOException) {
                 throw TransientWallpaperException(
                     "Could not apply the wallpaper: ${e.message ?: "system error"}", e
                 )
             }
 
-            thumbnails.save(decoded)
+            thumbnails.save(framed)
         } finally {
+            // Recycled only after setBitmap and the thumbnail write are done with it.
             bitmap?.recycle()
             temporaryFile.delete()
         }

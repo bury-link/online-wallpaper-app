@@ -55,8 +55,9 @@ Settings screen ──> DataStore (url, interval, enabled, last success, last er
                                           └─> WallpaperWorker
                                                  1. download the URL with OkHttp
                                                  2. decode, downsampled to screen size
-                                                 3. WallpaperManager.setBitmap(…, FLAG_LOCK)
-                                                 4. record success or error in DataStore
+                                                 3. center-crop + scale to the screen size
+                                                 4. WallpaperManager.setBitmap(…, FLAG_LOCK)
+                                                 5. record success or error in DataStore
 ```
 
 - **Scheduling.** The periodic work is enqueued under the unique name `wallpaper-refresh` with
@@ -71,6 +72,9 @@ Settings screen ──> DataStore (url, interval, enabled, last success, last er
   dimensions, then with an `inSampleSize` that is the largest power of two keeping the image at or
   above `WallpaperManager.getDesiredMinimumWidth()/Height()`. If a decode still hits
   `OutOfMemoryError`, the sample size is doubled and retried up to three times.
+- **Framing.** The decoded bitmap is center-cropped to the screen's aspect ratio and then scaled to
+  the exact target size, so it fills the lock screen without being stretched. An image that already
+  matches the target ratio keeps all of its pixels.
 - **Applying.** `WallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_LOCK)` —
   lock screen only. `FLAG_SYSTEM` is never passed.
 - **Failure handling.** Failures are classified. *Transient* ones (no connectivity, timeout, HTTP
