@@ -1,0 +1,47 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Local configuration — machine specific, must never be committed
+local.properties
+.cxx/
+
+# Android build artefacts
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+release/
+captures/
+output.json
+lint-results*.html
+lint-results*.xml
+
+# Signing material
+*.jks
+*.keystore
+keystore.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+.navigation/
+
+# Kotlin
+.kotlin/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Agent scratch files
+.claude_run.json
+.claude_run.err

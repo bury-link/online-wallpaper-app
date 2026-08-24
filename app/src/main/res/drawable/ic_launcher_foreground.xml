@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Sun, inside the 72dp adaptive-icon safe zone. -->
+    <path
+        android:fillColor="#FFFFC966"
+        android:pathData="M73.4,34.6m-11.9,0a11.9,11.9 0,1 1,23.8 0a11.9,11.9 0,1 1,-23.8 0" />
+
+    <!-- Far ridge. -->
+    <path
+        android:fillColor="#FF8CB2E8"
+        android:pathData="M0.0,77.5 L3.4,78.6 L6.8,79.5 L10.1,80.2 L13.5,80.7 L16.9,81.0 L20.2,81.0 L23.6,80.7 L27.0,80.3 L30.4,79.6 L33.8,78.7 L37.1,77.6 L40.5,76.4 L43.9,75.1 L47.2,73.6 L50.6,72.1 L54.0,70.6 L57.4,69.1 L60.8,67.6 L64.1,66.3 L67.5,65.0 L70.9,63.9 L74.2,63.0 L77.6,62.3 L81.0,61.8 L84.4,61.6 L87.8,61.6 L91.1,61.8 L94.5,62.3 L97.9,63.0 L101.2,63.8 L104.6,64.9 L108.0,66.1 L108,108 L0,108 Z" />
+
+    <!-- Near ridge. -->
+    <path
+        android:fillColor="#FFE9F1FF"
+        android:pathData="M0.0,92.5 L3.4,91.3 L6.8,89.8 L10.1,88.2 L13.5,86.4 L16.9,84.6 L20.2,83.0 L23.6,81.5 L27.0,80.3 L30.4,79.4 L33.8,78.9 L37.1,78.9 L40.5,79.2 L43.9,80.0 L47.2,81.1 L50.6,82.5 L54.0,84.1 L57.4,85.8 L60.8,87.6 L64.1,89.3 L67.5,90.8 L70.9,92.2 L74.2,93.1 L77.6,93.8 L81.0,94.0 L84.4,93.7 L87.8,93.1 L91.1,92.1 L94.5,90.8 L97.9,89.3 L101.2,87.6 L104.6,85.8 L108.0,84.1 L108,108 L0,108 Z" />
+</vector>

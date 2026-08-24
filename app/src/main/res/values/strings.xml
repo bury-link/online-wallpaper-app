@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Online Wallpaper</string>
+
+    <string name="image_url">Image URL</string>
+    <string name="image_url_hint">Direct link to a JPEG, PNG or WebP image.</string>
+    <string name="refresh_interval">Refresh interval</string>
+    <string name="automatic_refresh">Automatic refresh</string>
+    <string name="refresh_on">Lock screen updates every %1$s.</string>
+    <string name="refresh_off">Off — the lock screen only changes when you tap Set now.</string>
+    <string name="set_now">Set now</string>
+    <string name="setting_now">Setting…</string>
+
+    <string name="status">Status</string>
+    <string name="last_success">Last successful update</string>
+    <string name="last_error">Last error</string>
+    <string name="next_run">Next scheduled run</string>
+    <string name="never">Never</string>
+    <string name="refresh_disabled">Automatic refresh is off</string>
+    <string name="waiting_to_be_scheduled">Waiting for the system to schedule it</string>
+    <string name="current_wallpaper">Last applied wallpaper</string>
+
+    <string name="battery_hint_title">Updates may be delayed</string>
+    <string name="battery_hint_body">Android batches background work, so a refresh can arrive later
+        than the interval you picked. Exempting this app from battery optimization makes it run
+        closer to schedule.</string>
+    <string name="battery_hint_stalled">The lock screen has not been updated for a while. Android may
+        be deferring background work — exempting this app from battery optimization usually
+        fixes it.</string>
+    <string name="battery_hint_action">Open battery settings</string>
+
+    <string name="lock_screen_note">This app only changes the lock screen wallpaper. Your home
+        screen wallpaper is never touched.</string>
+</resources>
