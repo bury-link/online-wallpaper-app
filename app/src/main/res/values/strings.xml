@@ -4,9 +4,26 @@
 
     <string name="image_url">Image URL</string>
     <string name="image_url_hint">Direct link to a JPEG, PNG or WebP image.</string>
+    <string name="image_url_error">Enter a full http(s) image URL.</string>
     <string name="refresh_interval">Refresh interval</string>
+    <string name="interval_15_minutes">15 minutes</string>
+    <string name="interval_30_minutes">30 minutes</string>
+    <string name="interval_1_hour">1 hour</string>
+    <string name="interval_6_hours">6 hours</string>
+    <string name="interval_12_hours">12 hours</string>
+    <string name="interval_1_day">1 day</string>
+
+    <string name="frame_fit_label">Image framing</string>
+    <string name="frame_fit_fit_caption">With borders</string>
+    <string name="frame_fit_fill_caption">Fill screen</string>
+    <string name="image_position_label">Image position</string>
+    <string name="image_position_horizontal">Horizontal: left — right</string>
+    <string name="image_position_vertical">Vertical: top — bottom</string>
+
+    <string name="wallpaper_preview">Preview</string>
+    <string name="wallpaper_preview_empty">Set a wallpaper once to see its framing here.</string>
     <string name="automatic_refresh">Automatic refresh</string>
-    <string name="refresh_on">Lock screen updates every %1$s.</string>
+    <string name="refresh_on">The lock screen updates every %1$s.</string>
     <string name="refresh_off">Off — the lock screen only changes when you tap Set now.</string>
     <string name="set_now">Set now</string>
     <string name="setting_now">Setting…</string>
@@ -17,18 +34,33 @@
     <string name="next_run">Next scheduled run</string>
     <string name="never">Never</string>
     <string name="refresh_disabled">Automatic refresh is off</string>
-    <string name="waiting_to_be_scheduled">Waiting for the system to schedule it</string>
-    <string name="current_wallpaper">Last applied wallpaper</string>
+    <string name="waiting_to_be_scheduled">Waiting for Android to schedule it</string>
 
     <string name="battery_hint_title">Updates may be delayed</string>
-    <string name="battery_hint_body">Android batches background work, so a refresh can arrive later
-        than the interval you picked. Exempting this app from battery optimization makes it run
-        closer to schedule.</string>
-    <string name="battery_hint_stalled">The lock screen has not been updated for a while. Android may
-        be deferring background work — exempting this app from battery optimization usually
-        fixes it.</string>
+    <string name="battery_hint_body">Android batches background work, so an update can arrive later than the interval you picked. Exempting this app from battery optimization makes it run closer to schedule.</string>
+    <string name="battery_hint_stalled">The lock screen has not been updated for a while. Android may be deferring background work — exempting this app from battery optimization usually fixes it.</string>
     <string name="battery_hint_action">Open battery settings</string>
 
-    <string name="lock_screen_note">This app only changes the lock screen wallpaper. Your home
-        screen wallpaper is never touched.</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="privacy_policy_summary">No analytics, advertising or account. Your image URL stays on this device and is downloaded directly from the server you choose.</string>
+    <string name="open_privacy_policy">Read privacy policy</string>
+    <string name="privacy_policy_unavailable">Could not open the privacy policy.</string>
+
+    <string name="lock_screen_note">This app only changes the lock screen wallpaper. Your home screen wallpaper is never touched.</string>
+
+    <string name="error_invalid_url">Enter a valid image URL first.</string>
+    <string name="error_invalid_image_url">This is not a valid image URL.</string>
+    <string name="error_download_timeout">Download timed out.</string>
+    <string name="error_network">Network error: %1$s</string>
+    <string name="error_server_http">The server returned HTTP %1$d.</string>
+    <string name="error_empty_response">The server returned an empty response.</string>
+    <string name="error_download_failed">Download failed: %1$s</string>
+    <string name="error_download_empty">The downloaded file is empty.</string>
+    <string name="error_not_image">The downloaded file is not a readable image.</string>
+    <string name="error_decode">The image could not be decoded.</string>
+    <string name="error_memory">Not enough memory to decode the image.</string>
+    <string name="error_wallpaper_unsupported">This device does not support setting wallpapers.</string>
+    <string name="error_wallpaper_blocked">Changing the wallpaper is blocked by a device policy.</string>
+    <string name="error_apply_wallpaper">Could not apply the wallpaper: %1$s</string>
+    <string name="error_temporary">Temporary error.</string>
 </resources>

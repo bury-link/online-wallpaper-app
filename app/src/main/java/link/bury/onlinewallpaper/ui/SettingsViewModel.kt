@@ -23,6 +23,7 @@ import link.bury.onlinewallpaper.data.RefreshInterval
 import link.bury.onlinewallpaper.data.SettingsRepository
 import link.bury.onlinewallpaper.data.UrlValidator
 import link.bury.onlinewallpaper.data.WallpaperSettings
+import link.bury.onlinewallpaper.wallpaper.Framing
 import link.bury.onlinewallpaper.wallpaper.ThumbnailStore
 import link.bury.onlinewallpaper.work.WallpaperScheduler
 
@@ -30,6 +31,10 @@ data class SettingsUiState(
     val urlInput: String = "",
     val interval: RefreshInterval = RefreshInterval.DEFAULT,
     val enabled: Boolean = false,
+    /** Where the FIT-FILL framing slider sits; see [Framing]. */
+    val frameFit: Float = Framing.DEFAULT,
+    val horizontalPosition: Float = Framing.POSITION_CENTER,
+    val verticalPosition: Float = Framing.POSITION_CENTER,
     val lastSuccessAt: Long = 0L,
     val lastError: String? = null,
     val lastErrorAt: Long = 0L,
@@ -49,31 +54,53 @@ data class SettingsUiState(
     val showBatteryHint: Boolean get() = enabled && (batteryOptimized || looksStalled)
 }
 
+private data class EditedValues(
+    val url: String?,
+    val frameFit: Float?,
+    val horizontalPosition: Float?,
+    val verticalPosition: Float?,
+)
+
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val context: Context get() = getApplication()
     private val repository = SettingsRepository(context)
     private val thumbnails = ThumbnailStore(context)
 
-    /** Local echo of the text field so typing is not fighting the persisted value. */
+    /** Local echo of the text field/slider so editing is not fighting the persisted value. */
     private val urlInput = MutableStateFlow<String?>(null)
+    private val frameFitInput = MutableStateFlow<Float?>(null)
+    private val horizontalPositionInput = MutableStateFlow<Float?>(null)
+    private val verticalPositionInput = MutableStateFlow<Float?>(null)
     private val thumbnail = MutableStateFlow<Bitmap?>(null)
     private val batteryOptimized = MutableStateFlow(false)
     private var persistUrlJob: Job? = null
+    private var persistFrameFitJob: Job? = null
+    private var persistPositionJob: Job? = null
     private var lastThumbnailStamp = -1L
 
     val uiState: StateFlow<SettingsUiState> = combine(
         repository.settings,
         WallpaperScheduler.periodicWorkInfo(context),
         WallpaperScheduler.manualWorkInfo(context),
-        urlInput,
+        combine(
+            urlInput,
+            frameFitInput,
+            horizontalPositionInput,
+            verticalPositionInput,
+        ) { typedUrl, typedFrameFit, typedHorizontal, typedVertical ->
+            EditedValues(typedUrl, typedFrameFit, typedHorizontal, typedVertical)
+        },
         combine(thumbnail, batteryOptimized) { thumb, optimized -> thumb to optimized },
-    ) { settings, periodicInfo, manualInfo, typedUrl, (thumb, optimized) ->
+    ) { settings, periodicInfo, manualInfo, edited, (thumb, optimized) ->
         loadThumbnailIfChanged(settings.lastSuccessAt)
         SettingsUiState(
-            urlInput = typedUrl ?: settings.imageUrl,
+            urlInput = edited.url ?: settings.imageUrl,
             interval = settings.interval,
             enabled = settings.enabled,
+            frameFit = edited.frameFit ?: settings.frameFit,
+            horizontalPosition = edited.horizontalPosition ?: settings.horizontalPosition,
+            verticalPosition = edited.verticalPosition ?: settings.verticalPosition,
             lastSuccessAt = settings.lastSuccessAt,
             lastError = settings.lastError,
             lastErrorAt = settings.lastErrorAt,
@@ -100,6 +127,34 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun onFrameFitChanged(fit: Float) {
+        frameFitInput.value = fit
+        persistFrameFitJob?.cancel()
+        persistFrameFitJob = viewModelScope.launch {
+            delay(PERSIST_DEBOUNCE_MILLIS)
+            repository.setFrameFit(fit)
+        }
+    }
+
+    fun onHorizontalPositionChanged(position: Float) {
+        horizontalPositionInput.value = position
+        persistPosition()
+    }
+
+    fun onVerticalPositionChanged(position: Float) {
+        verticalPositionInput.value = position
+        persistPosition()
+    }
+
+    private fun persistPosition() {
+        persistPositionJob?.cancel()
+        persistPositionJob = viewModelScope.launch {
+            delay(PERSIST_DEBOUNCE_MILLIS)
+            horizontalPositionInput.value?.let { repository.setHorizontalPosition(it) }
+            verticalPositionInput.value?.let { repository.setVerticalPosition(it) }
+        }
+    }
+
     fun onIntervalSelected(interval: RefreshInterval) {
         viewModelScope.launch {
             repository.setInterval(interval)
@@ -111,7 +166,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun onEnabledChanged(enabled: Boolean) {
         viewModelScope.launch {
-            flushPendingUrl()
+            flushPendingInput()
             val settings = repository.current()
             if (enabled && !settings.hasValidUrl) return@launch
 
@@ -127,7 +182,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun onRefreshNow() {
         viewModelScope.launch {
-            flushPendingUrl()
+            flushPendingInput()
             if (!repository.current().hasValidUrl) return@launch
             WallpaperScheduler.refreshNow(context)
         }
@@ -140,9 +195,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         batteryOptimized.value = !exempt
     }
 
-    private suspend fun flushPendingUrl() {
+    private suspend fun flushPendingInput() {
         persistUrlJob?.cancel()
+        persistFrameFitJob?.cancel()
+        persistPositionJob?.cancel()
         urlInput.value?.let { repository.setImageUrl(it) }
+        frameFitInput.value?.let { repository.setFrameFit(it) }
+        horizontalPositionInput.value?.let { repository.setHorizontalPosition(it) }
+        verticalPositionInput.value?.let { repository.setVerticalPosition(it) }
     }
 
     private fun restoreScheduleIfMissing() {

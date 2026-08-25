@@ -30,7 +30,12 @@ class WallpaperWorker(
         if (!manual && !settings.enabled) return Result.success()
 
         return try {
-            WallpaperUpdater(applicationContext).applyFrom(settings.imageUrl)
+            WallpaperUpdater(applicationContext).applyFrom(
+                url = settings.imageUrl,
+                fit = settings.frameFit,
+                horizontalPosition = settings.horizontalPosition,
+                verticalPosition = settings.verticalPosition,
+            )
             repository.recordSuccess(System.currentTimeMillis())
             Result.success()
         } catch (e: CancellationException) {

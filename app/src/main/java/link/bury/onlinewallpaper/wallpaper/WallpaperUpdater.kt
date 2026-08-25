@@ -22,10 +22,16 @@ class WallpaperUpdater(
     private val thumbnails = ThumbnailStore(appContext)
 
     /**
+     * @param fit where to sit on the FIT-FILL framing slider; see [Framing].
      * @throws PermanentWallpaperException when retrying cannot help.
      * @throws TransientWallpaperException when the caller should retry later.
      */
-    suspend fun applyFrom(url: String): Unit = withContext(Dispatchers.IO) {
+    suspend fun applyFrom(
+        url: String,
+        fit: Float,
+        horizontalPosition: Float,
+        verticalPosition: Float,
+    ): Unit = withContext(Dispatchers.IO) {
         if (!UrlValidator.isValid(url)) {
             throw PermanentWallpaperException("Set a valid http(s) image URL first")
         }
@@ -47,9 +53,21 @@ class WallpaperUpdater(
             val decoded = decodeDownsampled(temporaryFile, targetWidth, targetHeight)
             bitmap = decoded
 
-            // Center-crop to the screen's aspect ratio and scale to the exact target size, so the
-            // wallpaper fills the lock screen without distortion.
-            val framed = cropAndScale(decoded, targetWidth, targetHeight)
+            // Store the unframed source while it is still owned by this scope. frameBitmap may
+            // create a separate framed bitmap, after which the source is deliberately recycled.
+            // Saving it later would pass a recycled Bitmap to Bitmap.createScaledBitmap.
+            thumbnails.save(decoded)
+
+            // Frame to the screen's aspect ratio per the user's FIT-FILL preference and scale to
+            // the exact target size, without distorting the image.
+            val framed = frameBitmap(
+                source = decoded,
+                targetWidth = targetWidth,
+                targetHeight = targetHeight,
+                fit = fit,
+                horizontalPosition = horizontalPosition,
+                verticalPosition = verticalPosition,
+            )
             if (framed !== decoded) {
                 decoded.recycle()
                 bitmap = framed
@@ -62,8 +80,6 @@ class WallpaperUpdater(
                     "Could not apply the wallpaper: ${e.message ?: "system error"}", e
                 )
             }
-
-            thumbnails.save(framed)
         } finally {
             // Recycled only after setBitmap and the thumbnail write are done with it.
             bitmap?.recycle()

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Online Wallpaper</string>
+
+    <string name="image_url">Bild-URL</string>
+    <string name="image_url_hint">Direkter Link zu einem JPEG-, PNG- oder WebP-Bild.</string>
+    <string name="image_url_error">Gib eine vollständige http(s)-Bild-URL ein.</string>
+    <string name="refresh_interval">Aktualisierungsintervall</string>
+    <string name="interval_15_minutes">15 Minuten</string>
+    <string name="interval_30_minutes">30 Minuten</string>
+    <string name="interval_1_hour">1 Stunde</string>
+    <string name="interval_6_hours">6 Stunden</string>
+    <string name="interval_12_hours">12 Stunden</string>
+    <string name="interval_1_day">1 Tag</string>
+
+    <string name="frame_fit_label">Bildausschnitt</string>
+    <string name="frame_fit_fit_caption">Mit Rand</string>
+    <string name="frame_fit_fill_caption">Füllend</string>
+    <string name="image_position_label">Bildposition</string>
+    <string name="image_position_horizontal">Horizontal: links — rechts</string>
+    <string name="image_position_vertical">Vertikal: oben — unten</string>
+
+    <string name="wallpaper_preview">Vorschau</string>
+    <string name="wallpaper_preview_empty">Setze das Wallpaper einmal, um den Bildausschnitt hier zu sehen.</string>
+    <string name="automatic_refresh">Automatische Aktualisierung</string>
+    <string name="refresh_on">Der Sperrbildschirm wird alle %1$s aktualisiert.</string>
+    <string name="refresh_off">Aus — der Sperrbildschirm ändert sich nur nach „Jetzt setzen“.</string>
+    <string name="set_now">Jetzt setzen</string>
+    <string name="setting_now">Wird gesetzt…</string>
+
+    <string name="status">Status</string>
+    <string name="last_success">Letzte erfolgreiche Aktualisierung</string>
+    <string name="last_error">Letzter Fehler</string>
+    <string name="next_run">Nächste geplante Aktualisierung</string>
+    <string name="never">Nie</string>
+    <string name="refresh_disabled">Automatische Aktualisierung ist aus</string>
+    <string name="waiting_to_be_scheduled">Android plant die Aktualisierung</string>
+
+    <string name="battery_hint_title">Aktualisierungen können verspätet sein</string>
+    <string name="battery_hint_body">Android bündelt Hintergrundarbeit. Daher kann eine Aktualisierung später als das gewählte Intervall erfolgen. Eine Ausnahme von der Akku-Optimierung lässt die App planmäßiger laufen.</string>
+    <string name="battery_hint_stalled">Der Sperrbildschirm wurde seit einiger Zeit nicht aktualisiert. Android verschiebt möglicherweise Hintergrundarbeit — eine Ausnahme von der Akku-Optimierung hilft meist.</string>
+    <string name="battery_hint_action">Akku-Einstellungen öffnen</string>
+
+    <string name="privacy_policy">Datenschutzerklärung</string>
+    <string name="privacy_policy_summary">Keine Analyse, Werbung oder Konten. Deine Bild-URL bleibt auf diesem Gerät und wird direkt vom von dir gewählten Server geladen.</string>
+    <string name="open_privacy_policy">Datenschutzerklärung lesen</string>
+    <string name="privacy_policy_unavailable">Die Datenschutzerklärung konnte nicht geöffnet werden.</string>
+
+    <string name="lock_screen_note">Diese App ändert nur den Sperrbildschirm. Dein Startbildschirm bleibt unverändert.</string>
+
+    <string name="error_invalid_url">Gib zuerst eine gültige Bild-URL ein.</string>
+    <string name="error_invalid_image_url">Dies ist keine gültige Bild-URL.</string>
+    <string name="error_download_timeout">Zeitüberschreitung beim Download.</string>
+    <string name="error_network">Netzwerkfehler: %1$s</string>
+    <string name="error_server_http">Der Server antwortete mit HTTP %1$d.</string>
+    <string name="error_empty_response">Der Server lieferte eine leere Antwort.</string>
+    <string name="error_download_failed">Download fehlgeschlagen: %1$s</string>
+    <string name="error_download_empty">Die heruntergeladene Datei ist leer.</string>
+    <string name="error_not_image">Die heruntergeladene Datei ist kein lesbares Bild.</string>
+    <string name="error_decode">Das Bild konnte nicht dekodiert werden.</string>
+    <string name="error_memory">Nicht genügend Arbeitsspeicher, um das Bild zu dekodieren.</string>
+    <string name="error_wallpaper_unsupported">Dieses Gerät unterstützt das Setzen von Hintergrundbildern nicht.</string>
+    <string name="error_wallpaper_blocked">Das Ändern des Hintergrundbilds wird durch eine Geräterichtlinie blockiert.</string>
+    <string name="error_apply_wallpaper">Das Hintergrundbild konnte nicht gesetzt werden: %1$s</string>
+    <string name="error_temporary">Vorübergehender Fehler.</string>
+</resources>
