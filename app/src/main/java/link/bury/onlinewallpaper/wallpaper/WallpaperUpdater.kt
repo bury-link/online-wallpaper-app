@@ -31,6 +31,7 @@ class WallpaperUpdater(
         fit: Float,
         horizontalPosition: Float,
         verticalPosition: Float,
+        background: WallpaperBackground,
     ): Unit = withContext(Dispatchers.IO) {
         if (!UrlValidator.isValid(url)) {
             throw PermanentWallpaperException("Set a valid http(s) image URL first")
@@ -67,6 +68,7 @@ class WallpaperUpdater(
                 fit = fit,
                 horizontalPosition = horizontalPosition,
                 verticalPosition = verticalPosition,
+                background = background,
             )
             if (framed !== decoded) {
                 decoded.recycle()

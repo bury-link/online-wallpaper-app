@@ -23,8 +23,10 @@ import link.bury.onlinewallpaper.data.RefreshInterval
 import link.bury.onlinewallpaper.data.SettingsRepository
 import link.bury.onlinewallpaper.data.UrlValidator
 import link.bury.onlinewallpaper.data.WallpaperSettings
+import link.bury.onlinewallpaper.wallpaper.BackgroundMode
 import link.bury.onlinewallpaper.wallpaper.Framing
 import link.bury.onlinewallpaper.wallpaper.ThumbnailStore
+import link.bury.onlinewallpaper.wallpaper.WallpaperBackground
 import link.bury.onlinewallpaper.work.WallpaperScheduler
 
 data class SettingsUiState(
@@ -35,6 +37,9 @@ data class SettingsUiState(
     val frameFit: Float = Framing.DEFAULT,
     val horizontalPosition: Float = Framing.POSITION_CENTER,
     val verticalPosition: Float = Framing.POSITION_CENTER,
+    val background: WallpaperBackground = WallpaperBackground(),
+    /** Raw text remains available while the user is composing a custom hex color. */
+    val backgroundColorInput: String? = null,
     val lastSuccessAt: Long = 0L,
     val lastError: String? = null,
     val lastErrorAt: Long = 0L,
@@ -59,6 +64,7 @@ private data class EditedValues(
     val frameFit: Float?,
     val horizontalPosition: Float?,
     val verticalPosition: Float?,
+    val backgroundColor: String?,
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -67,16 +73,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val repository = SettingsRepository(context)
     private val thumbnails = ThumbnailStore(context)
 
-    /** Local echo of the text field/slider so editing is not fighting the persisted value. */
+    /** Local echo of inputs so editing is not fighting the persisted value. */
     private val urlInput = MutableStateFlow<String?>(null)
     private val frameFitInput = MutableStateFlow<Float?>(null)
     private val horizontalPositionInput = MutableStateFlow<Float?>(null)
     private val verticalPositionInput = MutableStateFlow<Float?>(null)
+    private val backgroundColorInput = MutableStateFlow<String?>(null)
     private val thumbnail = MutableStateFlow<Bitmap?>(null)
     private val batteryOptimized = MutableStateFlow(false)
     private var persistUrlJob: Job? = null
     private var persistFrameFitJob: Job? = null
     private var persistPositionJob: Job? = null
+    private var persistBackgroundColorJob: Job? = null
     private var lastThumbnailStamp = -1L
 
     val uiState: StateFlow<SettingsUiState> = combine(
@@ -88,8 +96,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             frameFitInput,
             horizontalPositionInput,
             verticalPositionInput,
-        ) { typedUrl, typedFrameFit, typedHorizontal, typedVertical ->
-            EditedValues(typedUrl, typedFrameFit, typedHorizontal, typedVertical)
+            backgroundColorInput,
+        ) { typedUrl, typedFrameFit, typedHorizontal, typedVertical, typedBackgroundColor ->
+            EditedValues(typedUrl, typedFrameFit, typedHorizontal, typedVertical, typedBackgroundColor)
         },
         combine(thumbnail, batteryOptimized) { thumb, optimized -> thumb to optimized },
     ) { settings, periodicInfo, manualInfo, edited, (thumb, optimized) ->
@@ -101,6 +110,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             frameFit = edited.frameFit ?: settings.frameFit,
             horizontalPosition = edited.horizontalPosition ?: settings.horizontalPosition,
             verticalPosition = edited.verticalPosition ?: settings.verticalPosition,
+            background = WallpaperBackground.fromStorage(
+                settings.background.mode.storageValue,
+                edited.backgroundColor ?: settings.background.colorHex,
+            ),
+            backgroundColorInput = edited.backgroundColor,
             lastSuccessAt = settings.lastSuccessAt,
             lastError = settings.lastError,
             lastErrorAt = settings.lastErrorAt,
@@ -146,6 +160,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         persistPosition()
     }
 
+    fun onBackgroundModeChanged(mode: BackgroundMode) {
+        viewModelScope.launch { repository.setBackgroundMode(mode) }
+    }
+
+    fun onBackgroundColorChanged(colorHex: String) {
+        backgroundColorInput.value = colorHex
+        persistBackgroundColorJob?.cancel()
+        persistBackgroundColorJob = viewModelScope.launch {
+            delay(PERSIST_DEBOUNCE_MILLIS)
+            if (WallpaperBackground.isValidColor(colorHex)) repository.setBackgroundColor(colorHex)
+        }
+    }
+
     private fun persistPosition() {
         persistPositionJob?.cancel()
         persistPositionJob = viewModelScope.launch {
@@ -158,9 +185,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun onIntervalSelected(interval: RefreshInterval) {
         viewModelScope.launch {
             repository.setInterval(interval)
-            if (repository.current().enabled) {
-                WallpaperScheduler.schedule(context, interval)
-            }
+            if (repository.current().enabled) WallpaperScheduler.schedule(context, interval)
         }
     }
 
@@ -169,7 +194,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             flushPendingInput()
             val settings = repository.current()
             if (enabled && !settings.hasValidUrl) return@launch
-
             repository.setEnabled(enabled)
             if (enabled) {
                 repository.clearError()
@@ -199,10 +223,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         persistUrlJob?.cancel()
         persistFrameFitJob?.cancel()
         persistPositionJob?.cancel()
+        persistBackgroundColorJob?.cancel()
         urlInput.value?.let { repository.setImageUrl(it) }
         frameFitInput.value?.let { repository.setFrameFit(it) }
         horizontalPositionInput.value?.let { repository.setHorizontalPosition(it) }
         verticalPositionInput.value?.let { repository.setVerticalPosition(it) }
+        backgroundColorInput.value
+            ?.takeIf(WallpaperBackground::isValidColor)
+            ?.let { repository.setBackgroundColor(it) }
     }
 
     private fun restoreScheduleIfMissing() {
@@ -212,9 +240,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 .getWorkInfosForUniqueWorkFlow(WallpaperScheduler.PERIODIC_WORK_NAME)
                 .first()
                 .any { !it.state.isFinished }
-            if (settings.enabled && !scheduled) {
-                WallpaperScheduler.schedule(context, settings.interval)
-            }
+            if (settings.enabled && !scheduled) WallpaperScheduler.schedule(context, settings.interval)
         }
     }
 
@@ -231,8 +257,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private fun WallpaperSettings.looksStalled(): Boolean {
         if (!enabled || lastSuccessAt == 0L) return false
-        val overdueBy = System.currentTimeMillis() - lastSuccessAt
-        return overdueBy > 2 * interval.millis + STALL_GRACE_MILLIS
+        return System.currentTimeMillis() - lastSuccessAt > 2 * interval.millis + STALL_GRACE_MILLIS
     }
 
     private companion object {

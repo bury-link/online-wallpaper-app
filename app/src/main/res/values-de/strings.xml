@@ -18,6 +18,12 @@
     <string name="frame_fit_label">Bildausschnitt</string>
     <string name="frame_fit_fit_caption">Mit Rand</string>
     <string name="frame_fit_fill_caption">Füllend</string>
+    <string name="background_label">Hintergrund</string>
+    <string name="background_hint">Wird nur dort sichtbar, wo das Bild den Bildschirm nicht füllt.</string>
+    <string name="background_blurred_image">Bild verschwommen</string>
+    <string name="background_color">Farbe</string>
+    <string name="background_color_hex">Farbe (Hex)</string>
+    <string name="background_color_hex_hint">Nutze eine deckende Farbe, z. B. #FF6C00.</string>
     <string name="image_position_label">Bildposition</string>
     <string name="image_position_horizontal">Horizontal: links — rechts</string>
     <string name="image_position_vertical">Vertikal: oben — unten</string>

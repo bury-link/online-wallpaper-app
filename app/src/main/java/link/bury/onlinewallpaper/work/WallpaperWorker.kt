@@ -35,6 +35,7 @@ class WallpaperWorker(
                 fit = settings.frameFit,
                 horizontalPosition = settings.horizontalPosition,
                 verticalPosition = settings.verticalPosition,
+                background = settings.background,
             )
             repository.recordSuccess(System.currentTimeMillis())
             Result.success()

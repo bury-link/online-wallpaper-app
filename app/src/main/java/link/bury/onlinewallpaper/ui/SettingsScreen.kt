@@ -73,7 +73,9 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlin.math.roundToInt
 import link.bury.onlinewallpaper.R
 import link.bury.onlinewallpaper.data.RefreshInterval
+import link.bury.onlinewallpaper.wallpaper.BackgroundMode
 import link.bury.onlinewallpaper.wallpaper.Framing
+import link.bury.onlinewallpaper.wallpaper.WallpaperBackground
 import link.bury.onlinewallpaper.wallpaper.calculateFrame
 import link.bury.onlinewallpaper.wallpaper.calculatePreviewFrame
 
@@ -85,6 +87,8 @@ fun SettingsScreen(
     onFrameFitChanged: (Float) -> Unit,
     onHorizontalPositionChanged: (Float) -> Unit,
     onVerticalPositionChanged: (Float) -> Unit,
+    onBackgroundModeChanged: (BackgroundMode) -> Unit,
+    onBackgroundColorChanged: (String) -> Unit,
     onEnabledChanged: (Boolean) -> Unit,
     onRefreshNow: () -> Unit,
     onScreenResumed: () -> Unit,
@@ -110,6 +114,13 @@ fun SettingsScreen(
 
             FrameFitSlider(value = state.frameFit, onValueChange = onFrameFitChanged)
 
+            BackgroundPicker(
+                background = state.background,
+                colorInput = state.backgroundColorInput ?: state.background.colorHex,
+                onModeChanged = onBackgroundModeChanged,
+                onColorChanged = onBackgroundColorChanged,
+            )
+
             HorizontalPositionSlider(
                 value = state.horizontalPosition,
                 onValueChange = onHorizontalPositionChanged,
@@ -120,6 +131,7 @@ fun SettingsScreen(
                 frameFit = state.frameFit,
                 horizontalPosition = state.horizontalPosition,
                 verticalPosition = state.verticalPosition,
+                background = state.background,
                 onVerticalPositionChanged = onVerticalPositionChanged,
             )
 
@@ -293,6 +305,47 @@ private fun FrameFitSlider(value: Float, onValueChange: (Float) -> Unit) {
 }
 
 @Composable
+private fun BackgroundPicker(
+    background: WallpaperBackground,
+    colorInput: String,
+    onModeChanged: (BackgroundMode) -> Unit,
+    onColorChanged: (String) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.background_label), style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(R.string.background_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextButton(onClick = { onModeChanged(BackgroundMode.BLURRED_IMAGE) }) {
+                Text(if (background.mode == BackgroundMode.BLURRED_IMAGE) {
+                    "✓ ${stringResource(R.string.background_blurred_image)}"
+                } else stringResource(R.string.background_blurred_image))
+            }
+            TextButton(onClick = { onModeChanged(BackgroundMode.COLOR) }) {
+                Text(if (background.mode == BackgroundMode.COLOR) {
+                    "✓ ${stringResource(R.string.background_color)}"
+                } else stringResource(R.string.background_color))
+            }
+        }
+        if (background.mode == BackgroundMode.COLOR) {
+            OutlinedTextField(
+                value = colorInput,
+                onValueChange = onColorChanged,
+                label = { Text(stringResource(R.string.background_color_hex)) },
+                placeholder = { Text(WallpaperBackground.DEFAULT_COLOR_HEX) },
+                singleLine = true,
+                isError = !WallpaperBackground.isValidColor(colorInput),
+                supportingText = { Text(stringResource(R.string.background_color_hex_hint)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
 private fun HorizontalPositionSlider(value: Float, onValueChange: (Float) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -318,6 +371,7 @@ private fun WallpaperPreview(
     frameFit: Float,
     horizontalPosition: Float,
     verticalPosition: Float,
+    background: WallpaperBackground,
     onVerticalPositionChanged: (Float) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -374,6 +428,22 @@ private fun WallpaperPreview(
                     availableWidth = size.width.roundToInt(),
                 )
                 if (preview.width == 0 || preview.height == 0) return@Canvas
+                when (background.mode) {
+                    BackgroundMode.COLOR -> drawRect(Color(android.graphics.Color.parseColor(background.colorHex)))
+                    BackgroundMode.BLURRED_IMAGE -> {
+                        val fill = calculateFrame(
+                            thumbnail.width, thumbnail.height, preview.width, preview.height,
+                            Framing.FILL, horizontalPosition, verticalPosition,
+                        )
+                        drawImage(
+                            image = thumbnail.asImageBitmap(),
+                            srcOffset = IntOffset(fill.crop.left, fill.crop.top),
+                            srcSize = IntSize(fill.crop.width, fill.crop.height),
+                            dstSize = IntSize(preview.width, preview.height),
+                        )
+                        drawRect(Color.Black.copy(alpha = 0.36f))
+                    }
+                }
                 val frame = calculateFrame(
                     sourceWidth = thumbnail.width,
                     sourceHeight = thumbnail.height,

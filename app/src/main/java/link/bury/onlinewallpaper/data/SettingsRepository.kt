@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import link.bury.onlinewallpaper.wallpaper.Framing
+import link.bury.onlinewallpaper.wallpaper.BackgroundMode
+import link.bury.onlinewallpaper.wallpaper.WallpaperBackground
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -31,6 +33,10 @@ class SettingsRepository(context: Context) {
             frameFit = prefs[Keys.FRAME_FIT] ?: Framing.DEFAULT,
             horizontalPosition = prefs[Keys.HORIZONTAL_POSITION] ?: Framing.POSITION_CENTER,
             verticalPosition = prefs[Keys.VERTICAL_POSITION] ?: Framing.POSITION_CENTER,
+            background = WallpaperBackground.fromStorage(
+                modeValue = prefs[Keys.BACKGROUND_MODE],
+                colorValue = prefs[Keys.BACKGROUND_COLOR],
+            ),
             lastSuccessAt = prefs[Keys.LAST_SUCCESS_AT] ?: 0L,
             lastError = prefs[Keys.LAST_ERROR],
             lastErrorAt = prefs[Keys.LAST_ERROR_AT] ?: 0L,
@@ -55,6 +61,14 @@ class SettingsRepository(context: Context) {
 
     suspend fun setVerticalPosition(position: Float) = edit {
         it[Keys.VERTICAL_POSITION] = position.coerceIn(Framing.POSITION_START, Framing.POSITION_END)
+    }
+
+    suspend fun setBackgroundMode(mode: BackgroundMode) = edit {
+        it[Keys.BACKGROUND_MODE] = mode.storageValue
+    }
+
+    suspend fun setBackgroundColor(colorHex: String) = edit {
+        it[Keys.BACKGROUND_COLOR] = WallpaperBackground.fromStorage(null, colorHex).colorHex
     }
 
     /** Records a successful run and clears any previous error. */
@@ -85,6 +99,8 @@ class SettingsRepository(context: Context) {
         val FRAME_FIT = floatPreferencesKey("frame_fit")
         val HORIZONTAL_POSITION = floatPreferencesKey("horizontal_position")
         val VERTICAL_POSITION = floatPreferencesKey("vertical_position")
+        val BACKGROUND_MODE = stringPreferencesKey("background_mode")
+        val BACKGROUND_COLOR = stringPreferencesKey("background_color")
         val LAST_SUCCESS_AT = longPreferencesKey("last_success_at")
         val LAST_ERROR = stringPreferencesKey("last_error")
         val LAST_ERROR_AT = longPreferencesKey("last_error_at")

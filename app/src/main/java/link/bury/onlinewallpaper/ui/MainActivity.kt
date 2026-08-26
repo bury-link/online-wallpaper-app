@@ -25,6 +25,8 @@ class MainActivity : ComponentActivity() {
                     onFrameFitChanged = viewModel::onFrameFitChanged,
                     onHorizontalPositionChanged = viewModel::onHorizontalPositionChanged,
                     onVerticalPositionChanged = viewModel::onVerticalPositionChanged,
+                    onBackgroundModeChanged = viewModel::onBackgroundModeChanged,
+                    onBackgroundColorChanged = viewModel::onBackgroundColorChanged,
                     onEnabledChanged = viewModel::onEnabledChanged,
                     onRefreshNow = viewModel::onRefreshNow,
                     onScreenResumed = viewModel::refreshBatteryOptimizationState,
