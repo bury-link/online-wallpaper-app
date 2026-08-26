@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Online Wallpaper</string>
+    <string name="app_subtitle">Set a lock screen wallpaper from any direct image URL.</string>
+    <string name="brand_website_unavailable">Could not open bury.link.</string>
 
     <string name="image_url">Image URL</string>
     <string name="image_url_hint">Direct link to a JPEG, PNG or WebP image.</string>

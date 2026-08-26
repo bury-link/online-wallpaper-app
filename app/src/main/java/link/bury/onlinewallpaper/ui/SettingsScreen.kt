@@ -44,7 +44,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,10 +58,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -91,17 +94,16 @@ fun SettingsScreen(
         onPauseOrDispose { }
     }
 
-    Scaffold(
-        topBar = { AppBar() },
-        modifier = Modifier.fillMaxSize(),
-    ) { innerPadding ->
+    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            AppHeader()
+
             UrlField(state = state, onUrlChanged = onUrlChanged)
 
             IntervalPicker(selected = state.interval, onIntervalSelected = onIntervalSelected)
@@ -154,14 +156,48 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
+            BrandFooter()
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AppBar() {
-    TopAppBar(title = { Text(stringResource(R.string.app_name)) })
+private fun AppHeader() {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = stringResource(R.string.app_name),
+            style = MaterialTheme.typography.headlineLarge,
+        )
+        Text(
+            text = stringResource(R.string.app_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun BrandFooter() {
+    val context = LocalContext.current
+    TextButton(
+        onClick = { context.openBrandWebsite() },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("bury") }
+                withStyle(
+                    SpanStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Light,
+                    ),
+                ) { append("/") }
+                withStyle(SpanStyle(fontWeight = FontWeight.Light)) { append("link") }
+            },
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Light),
+        )
+    }
 }
 
 @Composable
@@ -328,9 +364,9 @@ private fun WallpaperPreview(
                 modifier = Modifier
                     .width(180.dp)
                     .aspectRatio(screenRatio)
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(0.dp))
                     .background(Color.Black)
-                    .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
+                    .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(0.dp)),
             ) {
                 val preview = calculatePreviewFrame(
                     screenWidth = configuration.screenWidthDp,
@@ -526,16 +562,24 @@ private fun PrivacyPolicyCard() {
 }
 
 private fun Context.openPrivacyPolicy() {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))
+    openExternalUrl(PRIVACY_POLICY_URL, R.string.privacy_policy_unavailable)
+}
+
+private fun Context.openBrandWebsite() {
+    openExternalUrl(BRAND_WEBSITE_URL, R.string.brand_website_unavailable)
+}
+
+private fun Context.openExternalUrl(url: String, unavailableMessage: Int) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     try {
         startActivity(intent)
     } catch (_: ActivityNotFoundException) {
-        android.widget.Toast.makeText(this, R.string.privacy_policy_unavailable, android.widget.Toast.LENGTH_SHORT)
-            .show()
+        android.widget.Toast.makeText(this, unavailableMessage, android.widget.Toast.LENGTH_SHORT).show()
     }
 }
 
 private const val PRIVACY_POLICY_URL = "https://bury.link/privacy/online-wallpaper"
+private const val BRAND_WEBSITE_URL = "https://bury.link"
 
 /**
  * Asks the system to exempt this app from battery optimization. Falls back to the general list

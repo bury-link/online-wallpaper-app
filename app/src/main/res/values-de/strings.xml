@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Online Wallpaper</string>
+    <string name="app_subtitle">Setze ein Sperrbildschirm-Wallpaper über eine direkte Bild-URL.</string>
+    <string name="brand_website_unavailable">bury.link konnte nicht geöffnet werden.</string>
 
     <string name="image_url">Bild-URL</string>
     <string name="image_url_hint">Direkter Link zu einem JPEG-, PNG- oder WebP-Bild.</string>
