@@ -21,6 +21,9 @@ class MainActivity : ComponentActivity() {
                 SettingsScreen(
                     state = state,
                     onUrlChanged = viewModel::onUrlChanged,
+                    onSaveCurrentSource = { viewModel.saveCurrentSource("") },
+                    onSelectSavedSource = viewModel::selectSavedSource,
+                    onRemoveSavedSource = viewModel::removeSavedSource,
                     onIntervalSelected = viewModel::onIntervalSelected,
                     onFrameFitChanged = viewModel::onFrameFitChanged,
                     onHorizontalPositionChanged = viewModel::onHorizontalPositionChanged,

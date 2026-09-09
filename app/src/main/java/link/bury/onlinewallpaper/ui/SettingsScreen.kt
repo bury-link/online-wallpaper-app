@@ -9,6 +9,8 @@ import android.provider.Settings
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,9 +54,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -72,9 +79,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlin.math.roundToInt
 import link.bury.onlinewallpaper.R
+import link.bury.onlinewallpaper.data.CuratedWallpaperSource
 import link.bury.onlinewallpaper.data.RefreshInterval
+import link.bury.onlinewallpaper.data.SavedSource
 import link.bury.onlinewallpaper.wallpaper.BackgroundMode
 import link.bury.onlinewallpaper.wallpaper.Framing
+import link.bury.onlinewallpaper.wallpaper.HsvColor
 import link.bury.onlinewallpaper.wallpaper.WallpaperBackground
 import link.bury.onlinewallpaper.wallpaper.calculateFrame
 import link.bury.onlinewallpaper.wallpaper.calculatePreviewFrame
@@ -83,6 +93,9 @@ import link.bury.onlinewallpaper.wallpaper.calculatePreviewFrame
 fun SettingsScreen(
     state: SettingsUiState,
     onUrlChanged: (String) -> Unit,
+    onSaveCurrentSource: () -> Unit,
+    onSelectSavedSource: (SavedSource) -> Unit,
+    onRemoveSavedSource: (SavedSource) -> Unit,
     onIntervalSelected: (RefreshInterval) -> Unit,
     onFrameFitChanged: (Float) -> Unit,
     onHorizontalPositionChanged: (Float) -> Unit,
@@ -109,6 +122,16 @@ fun SettingsScreen(
             AppHeader()
 
             UrlField(state = state, onUrlChanged = onUrlChanged)
+
+            SavedSourcesSection(
+                sources = state.savedSources,
+                canSaveCurrent = state.urlIsValid,
+                onSaveCurrent = onSaveCurrentSource,
+                onSelect = onSelectSavedSource,
+                onRemove = onRemoveSavedSource,
+            )
+
+            CuratedSourcePicker(currentUrl = state.urlInput, onUrlChanged = onUrlChanged)
 
             IntervalPicker(selected = state.interval, onIntervalSelected = onIntervalSelected)
 
@@ -237,6 +260,81 @@ private fun UrlField(state: SettingsUiState, onUrlChanged: (String) -> Unit) {
     )
 }
 
+@Composable
+private fun SavedSourcesSection(
+    sources: List<SavedSource>,
+    canSaveCurrent: Boolean,
+    onSaveCurrent: () -> Unit,
+    onSelect: (SavedSource) -> Unit,
+    onRemove: (SavedSource) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.saved_sources), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            TextButton(onClick = onSaveCurrent, enabled = canSaveCurrent) { Text(stringResource(R.string.save_current_source)) }
+        }
+        if (sources.isEmpty()) {
+            Text(stringResource(R.string.saved_sources_empty), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            sources.forEach { source ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(source.name, style = MaterialTheme.typography.titleSmall)
+                            Text(source.url, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        TextButton(onClick = { onSelect(source) }) { Text(stringResource(R.string.use_saved_source)) }
+                        TextButton(onClick = { onRemove(source) }) { Text(stringResource(R.string.remove_saved_source)) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CuratedSourcePicker(currentUrl: String, onUrlChanged: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val selected = CuratedWallpaperSource.findByUrl(currentUrl)
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+        ) {
+            OutlinedTextField(
+                value = selected?.let { stringResource(it.labelRes) }
+                    ?: stringResource(R.string.curated_sources_custom_url),
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(R.string.curated_sources)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                CuratedWallpaperSource.entries.forEach { source ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(source.labelRes)) },
+                        onClick = {
+                            expanded = false
+                            onUrlChanged(source.url)
+                        },
+                    )
+                }
+            }
+        }
+        Text(
+            text = stringResource(R.string.curated_sources_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun IntervalPicker(
@@ -331,19 +429,161 @@ private fun BackgroundPicker(
             }
         }
         if (background.mode == BackgroundMode.COLOR) {
-            OutlinedTextField(
-                value = colorInput,
-                onValueChange = onColorChanged,
-                label = { Text(stringResource(R.string.background_color_hex)) },
-                placeholder = { Text(WallpaperBackground.DEFAULT_COLOR_HEX) },
-                singleLine = true,
-                isError = !WallpaperBackground.isValidColor(colorInput),
-                supportingText = { Text(stringResource(R.string.background_color_hex_hint)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
+            VisualColorPicker(colorHex = colorInput, onColorChanged = onColorChanged)
         }
     }
 }
+
+@Composable
+private fun VisualColorPicker(colorHex: String, onColorChanged: (String) -> Unit) {
+    var selected by remember(colorHex) { mutableStateOf(HsvColor.fromHex(colorHex)) }
+    var paletteSize by remember { mutableStateOf(IntSize.Zero) }
+    var hueSize by remember { mutableStateOf(IntSize.Zero) }
+
+    fun update(color: HsvColor) {
+        selected = color.normalized()
+        onColorChanged(selected.toHex())
+    }
+
+    fun updatePalette(position: Offset) {
+        if (paletteSize.width == 0 || paletteSize.height == 0) return
+        update(
+            selected.copy(
+                saturation = position.x / paletteSize.width,
+                value = 1f - position.y / paletteSize.height,
+            ),
+        )
+    }
+
+    fun updateHue(position: Offset) {
+        if (hueSize.width == 0) return
+        update(selected.copy(hue = position.x / hueSize.width * 360f))
+    }
+
+    val selectedColor = Color.hsv(selected.hue, selected.saturation, selected.value)
+    val hueColor = Color.hsv(selected.hue, 1f, 1f)
+    val pickerShape = RoundedCornerShape(16.dp)
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.color_picker_title),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+            )
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(selectedColor)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp)),
+            )
+        }
+
+        Text(
+            text = stringResource(R.string.color_picker_saturation_value),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(184.dp)
+                .clip(pickerShape)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, pickerShape)
+                .onSizeChanged { paletteSize = it }
+                .pointerInput(paletteSize, selected.hue) {
+                    detectDragGestures(
+                        onDragStart = ::updatePalette,
+                        onDrag = { change, _ -> updatePalette(change.position) },
+                    )
+                },
+        ) {
+            drawRect(Brush.horizontalGradient(listOf(Color.White, hueColor)))
+            drawRect(Brush.verticalGradient(listOf(Color.Transparent, Color.Black)))
+            val marker = Offset(
+                x = selected.saturation * size.width,
+                y = (1f - selected.value) * size.height,
+            )
+            drawCircle(Color.White, radius = 14f, center = marker)
+            drawCircle(Color.Black, radius = 12f, center = marker, style = Stroke(3f))
+        }
+
+        Text(
+            text = stringResource(R.string.color_picker_hue),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(32.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
+                .onSizeChanged { hueSize = it }
+                .pointerInput(hueSize) {
+                    detectDragGestures(
+                        onDragStart = ::updateHue,
+                        onDrag = { change, _ -> updateHue(change.position) },
+                    )
+                },
+        ) {
+            drawRect(
+                Brush.horizontalGradient(
+                    listOf(
+                        Color.Red,
+                        Color.Yellow,
+                        Color.Green,
+                        Color.Cyan,
+                        Color.Blue,
+                        Color.Magenta,
+                        Color.Red,
+                    ),
+                ),
+            )
+            val markerX = selected.hue / 360f * size.width
+            drawCircle(Color.White, radius = 12f, center = Offset(markerX, size.height / 2f))
+            drawCircle(Color.Black, radius = 10f, center = Offset(markerX, size.height / 2f), style = Stroke(3f))
+        }
+
+        Text(
+            text = stringResource(R.string.color_picker_presets),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ColorPickerPresets.forEach { preset ->
+                val presetColor = Color(
+                    red = preset.substring(1, 3).toInt(16),
+                    green = preset.substring(3, 5).toInt(16),
+                    blue = preset.substring(5, 7).toInt(16),
+                )
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(presetColor)
+                        .border(
+                            width = if (selected.toHex() == preset) 3.dp else 1.dp,
+                            color = if (selected.toHex() == preset) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(18.dp),
+                        )
+                        .clickable { update(HsvColor.fromHex(preset)) },
+                )
+            }
+        }
+    }
+}
+
+private val ColorPickerPresets = listOf(
+    "#16161A",
+    "#FF6C00",
+    "#E8495F",
+    "#5B8CFF",
+    "#38B48B",
+    "#8B5CF6",
+    "#F4C542",
+)
 
 @Composable
 private fun HorizontalPositionSlider(value: Float, onValueChange: (Float) -> Unit) {
@@ -510,6 +750,13 @@ private fun StatusCard(state: SettingsUiState) {
                     ?.let(::formatTimestamp)
                     ?: stringResource(R.string.never),
             )
+
+            if (state.lastCheckedAt > 0) {
+                StatusLine(
+                    label = stringResource(R.string.last_source_check),
+                    value = "${stringResource(if (state.lastImageUnchanged) R.string.source_unchanged else R.string.source_changed)}\n${formatTimestamp(state.lastCheckedAt)}",
+                )
+            }
 
             StatusLine(
                 label = stringResource(R.string.next_run),

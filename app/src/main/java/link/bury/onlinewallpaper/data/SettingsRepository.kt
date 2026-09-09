@@ -37,6 +37,11 @@ class SettingsRepository(context: Context) {
                 modeValue = prefs[Keys.BACKGROUND_MODE],
                 colorValue = prefs[Keys.BACKGROUND_COLOR],
             ),
+            savedSources = SavedSources.decode(prefs[Keys.SAVED_SOURCES]),
+            lastCheckedAt = prefs[Keys.LAST_CHECKED_AT] ?: 0L,
+            lastImageUnchanged = prefs[Keys.LAST_IMAGE_UNCHANGED] ?: false,
+            lastImageHash = prefs[Keys.LAST_IMAGE_HASH],
+            sourceLastModified = prefs[Keys.SOURCE_LAST_MODIFIED],
             lastSuccessAt = prefs[Keys.LAST_SUCCESS_AT] ?: 0L,
             lastError = prefs[Keys.LAST_ERROR],
             lastErrorAt = prefs[Keys.LAST_ERROR_AT] ?: 0L,
@@ -71,9 +76,37 @@ class SettingsRepository(context: Context) {
         it[Keys.BACKGROUND_COLOR] = WallpaperBackground.fromStorage(null, colorHex).colorHex
     }
 
+    suspend fun saveSource(name: String, url: String) = edit { prefs ->
+        val updated = SavedSources.addOrReplace(
+            existing = SavedSources.decode(prefs[Keys.SAVED_SOURCES]),
+            name = name,
+            url = url,
+        )
+        prefs[Keys.SAVED_SOURCES] = SavedSources.encode(updated)
+    }
+
+    suspend fun removeSource(url: String) = edit { prefs ->
+        val updated = SavedSources.remove(SavedSources.decode(prefs[Keys.SAVED_SOURCES]), url)
+        if (updated.isEmpty()) prefs.remove(Keys.SAVED_SOURCES)
+        else prefs[Keys.SAVED_SOURCES] = SavedSources.encode(updated)
+    }
+
     /** Records a successful run and clears any previous error. */
-    suspend fun recordSuccess(timestamp: Long) = edit { prefs ->
+    suspend fun recordSuccess(timestamp: Long, imageHash: String, lastModified: String?) = edit { prefs ->
         prefs[Keys.LAST_SUCCESS_AT] = timestamp
+        prefs[Keys.LAST_CHECKED_AT] = timestamp
+        prefs[Keys.LAST_IMAGE_UNCHANGED] = false
+        prefs[Keys.LAST_IMAGE_HASH] = imageHash
+        lastModified?.let { prefs[Keys.SOURCE_LAST_MODIFIED] = it } ?: prefs.remove(Keys.SOURCE_LAST_MODIFIED)
+        prefs.remove(Keys.LAST_ERROR)
+        prefs.remove(Keys.LAST_ERROR_AT)
+    }
+
+    /** Records a successful source check where the bytes were unchanged, without reapplying it. */
+    suspend fun recordUnchanged(timestamp: Long, lastModified: String?) = edit { prefs ->
+        prefs[Keys.LAST_CHECKED_AT] = timestamp
+        prefs[Keys.LAST_IMAGE_UNCHANGED] = true
+        lastModified?.let { prefs[Keys.SOURCE_LAST_MODIFIED] = it } ?: prefs.remove(Keys.SOURCE_LAST_MODIFIED)
         prefs.remove(Keys.LAST_ERROR)
         prefs.remove(Keys.LAST_ERROR_AT)
     }
@@ -101,6 +134,11 @@ class SettingsRepository(context: Context) {
         val VERTICAL_POSITION = floatPreferencesKey("vertical_position")
         val BACKGROUND_MODE = stringPreferencesKey("background_mode")
         val BACKGROUND_COLOR = stringPreferencesKey("background_color")
+        val SAVED_SOURCES = stringPreferencesKey("saved_sources")
+        val LAST_CHECKED_AT = longPreferencesKey("last_checked_at")
+        val LAST_IMAGE_UNCHANGED = booleanPreferencesKey("last_image_unchanged")
+        val LAST_IMAGE_HASH = stringPreferencesKey("last_image_hash")
+        val SOURCE_LAST_MODIFIED = stringPreferencesKey("source_last_modified")
         val LAST_SUCCESS_AT = longPreferencesKey("last_success_at")
         val LAST_ERROR = stringPreferencesKey("last_error")
         val LAST_ERROR_AT = longPreferencesKey("last_error_at")

@@ -7,6 +7,22 @@
     <string name="image_url">Bild-URL</string>
     <string name="image_url_hint">Direkter Link zu einem JPEG-, PNG- oder WebP-Bild.</string>
     <string name="image_url_error">Gib eine vollständige http(s)-Bild-URL ein.</string>
+    <string name="curated_sources">Allgemeine Bildquellen</string>
+    <string name="curated_sources_custom_url">Eigene Bild-URL</string>
+    <string name="curated_sources_hint">Die Auswahl ersetzt die Bild-URL oben. Deine Webcam bleibt als eigene URL verfügbar.</string>
+    <string name="source_dwd_radar_germany">DWD-Regenradar — Deutschland</string>
+    <string name="source_dwd_radar_baden_wuerttemberg">DWD-Regenradar — Baden-Württemberg</string>
+    <string name="source_climate_reanalyzer_europe_africa">Climate Reanalyzer — Europa &amp; Afrika</string>
+    <string name="source_noaa_aurora_north">NOAA-Polarlichtprognose — Nordhalbkugel</string>
+    <string name="source_nasa_sdo_193">NASA-Sonne — Korona (193 Å)</string>
+    <string name="source_nasa_sdo_304">NASA-Sonne — Chromosphäre (304 Å)</string>
+    <string name="source_nasa_sdo_magnetogram">NASA-Sonne — Magnetfeld</string>
+    <string name="source_noaa_goes16_geocolor">NOAA GOES-16 — Satellit Nordamerika</string>
+    <string name="saved_sources">Gespeicherte Quellen</string>
+    <string name="save_current_source">Aktuelle speichern</string>
+    <string name="saved_sources_empty">Speichere deine Webcam oder eine andere Bild-URL zum schnellen Wechseln.</string>
+    <string name="use_saved_source">Nutzen</string>
+    <string name="remove_saved_source">Entfernen</string>
     <string name="refresh_interval">Aktualisierungsintervall</string>
     <string name="interval_15_minutes">15 Minuten</string>
     <string name="interval_30_minutes">30 Minuten</string>
@@ -24,6 +40,10 @@
     <string name="background_color">Farbe</string>
     <string name="background_color_hex">Farbe (Hex)</string>
     <string name="background_color_hex_hint">Nutze eine deckende Farbe, z. B. #FF6C00.</string>
+    <string name="color_picker_title">Farbe wählen</string>
+    <string name="color_picker_saturation_value">Farbintensität und Helligkeit</string>
+    <string name="color_picker_hue">Farbton</string>
+    <string name="color_picker_presets">Schnellauswahl</string>
     <string name="image_position_label">Bildposition</string>
     <string name="image_position_horizontal">Horizontal: links — rechts</string>
     <string name="image_position_vertical">Vertikal: oben — unten</string>
@@ -38,6 +58,9 @@
 
     <string name="status">Status</string>
     <string name="last_success">Letzte erfolgreiche Aktualisierung</string>
+    <string name="last_source_check">Letzte Quellenprüfung</string>
+    <string name="source_unchanged">Geprüft — Bild unverändert</string>
+    <string name="source_changed">Geprüft — neues Bild gesetzt</string>
     <string name="last_error">Letzter Fehler</string>
     <string name="next_run">Nächste geplante Aktualisierung</string>
     <string name="never">Nie</string>

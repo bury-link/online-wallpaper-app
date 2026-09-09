@@ -15,6 +15,15 @@ data class WallpaperSettings(
     /** -1 = top, 0 = center, +1 = bottom. */
     val verticalPosition: Float = Framing.POSITION_CENTER,
     val background: WallpaperBackground = WallpaperBackground(),
+    val savedSources: List<SavedSource> = emptyList(),
+    /** Epoch millis of the last successful source check, including unchanged images. */
+    val lastCheckedAt: Long = 0L,
+    /** True when the most recent source check found the same image bytes. */
+    val lastImageUnchanged: Boolean = false,
+    /** SHA-256 of the last image that was actually applied. */
+    val lastImageHash: String? = null,
+    /** HTTP Last-Modified from the most recent source check, when supplied. */
+    val sourceLastModified: String? = null,
     /** Epoch millis of the last wallpaper that was applied successfully, or 0 if never. */
     val lastSuccessAt: Long = 0L,
     /** Message of the most recent failure, or null once a later run succeeds. */

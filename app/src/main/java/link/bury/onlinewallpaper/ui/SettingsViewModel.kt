@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import link.bury.onlinewallpaper.data.RefreshInterval
+import link.bury.onlinewallpaper.data.SavedSource
 import link.bury.onlinewallpaper.data.SettingsRepository
 import link.bury.onlinewallpaper.data.UrlValidator
 import link.bury.onlinewallpaper.data.WallpaperSettings
@@ -31,6 +32,9 @@ import link.bury.onlinewallpaper.work.WallpaperScheduler
 
 data class SettingsUiState(
     val urlInput: String = "",
+    val savedSources: List<SavedSource> = emptyList(),
+    val lastCheckedAt: Long = 0L,
+    val lastImageUnchanged: Boolean = false,
     val interval: RefreshInterval = RefreshInterval.DEFAULT,
     val enabled: Boolean = false,
     /** Where the FIT-FILL framing slider sits; see [Framing]. */
@@ -105,6 +109,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         loadThumbnailIfChanged(settings.lastSuccessAt)
         SettingsUiState(
             urlInput = edited.url ?: settings.imageUrl,
+            savedSources = settings.savedSources,
+            lastCheckedAt = settings.lastCheckedAt,
+            lastImageUnchanged = settings.lastImageUnchanged,
             interval = settings.interval,
             enabled = settings.enabled,
             frameFit = edited.frameFit ?: settings.frameFit,
@@ -139,6 +146,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             delay(PERSIST_DEBOUNCE_MILLIS)
             repository.setImageUrl(url)
         }
+    }
+
+    fun saveCurrentSource(name: String) {
+        viewModelScope.launch {
+            flushPendingInput()
+            repository.current().imageUrl.takeIf(UrlValidator::isValid)?.let { repository.saveSource(name, it) }
+        }
+    }
+
+    fun selectSavedSource(source: SavedSource) = onUrlChanged(source.url)
+
+    fun removeSavedSource(source: SavedSource) {
+        viewModelScope.launch { repository.removeSource(source.url) }
     }
 
     fun onFrameFitChanged(fit: Float) {

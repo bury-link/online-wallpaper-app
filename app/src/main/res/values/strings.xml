@@ -7,6 +7,22 @@
     <string name="image_url">Image URL</string>
     <string name="image_url_hint">Direct link to a JPEG, PNG or WebP image.</string>
     <string name="image_url_error">Enter a full http(s) image URL.</string>
+    <string name="curated_sources">Curated image sources</string>
+    <string name="curated_sources_custom_url">Custom image URL</string>
+    <string name="curated_sources_hint">Choosing a source replaces the image URL above. Your webcam stays available as a custom URL.</string>
+    <string name="source_dwd_radar_germany">DWD rain radar — Germany</string>
+    <string name="source_dwd_radar_baden_wuerttemberg">DWD rain radar — Baden-Württemberg</string>
+    <string name="source_climate_reanalyzer_europe_africa">Climate Reanalyzer — Europe &amp; Africa</string>
+    <string name="source_noaa_aurora_north">NOAA aurora forecast — Northern Hemisphere</string>
+    <string name="source_nasa_sdo_193">NASA Sun — corona (193 Å)</string>
+    <string name="source_nasa_sdo_304">NASA Sun — chromosphere (304 Å)</string>
+    <string name="source_nasa_sdo_magnetogram">NASA Sun — magnetic field</string>
+    <string name="source_noaa_goes16_geocolor">NOAA GOES-16 — North America satellite</string>
+    <string name="saved_sources">Saved sources</string>
+    <string name="save_current_source">Save current</string>
+    <string name="saved_sources_empty">Save your webcam or another image URL here for quick switching.</string>
+    <string name="use_saved_source">Use</string>
+    <string name="remove_saved_source">Remove</string>
     <string name="refresh_interval">Refresh interval</string>
     <string name="interval_15_minutes">15 minutes</string>
     <string name="interval_30_minutes">30 minutes</string>
@@ -24,6 +40,10 @@
     <string name="background_color">Color</string>
     <string name="background_color_hex">Color (hex)</string>
     <string name="background_color_hex_hint">Use an opaque color, e.g. #FF6C00.</string>
+    <string name="color_picker_title">Choose a color</string>
+    <string name="color_picker_saturation_value">Shade and brightness</string>
+    <string name="color_picker_hue">Hue</string>
+    <string name="color_picker_presets">Quick picks</string>
     <string name="image_position_label">Image position</string>
     <string name="image_position_horizontal">Horizontal: left — right</string>
     <string name="image_position_vertical">Vertical: top — bottom</string>
@@ -38,6 +58,9 @@
 
     <string name="status">Status</string>
     <string name="last_success">Last successful update</string>
+    <string name="last_source_check">Last source check</string>
+    <string name="source_unchanged">Checked — image unchanged</string>
+    <string name="source_changed">Checked — new image applied</string>
     <string name="last_error">Last error</string>
     <string name="next_run">Next scheduled run</string>
     <string name="never">Never</string>

@@ -9,6 +9,7 @@ import link.bury.onlinewallpaper.data.SettingsRepository
 import link.bury.onlinewallpaper.wallpaper.PermanentWallpaperException
 import link.bury.onlinewallpaper.wallpaper.TransientWallpaperException
 import link.bury.onlinewallpaper.wallpaper.WallpaperUpdater
+import link.bury.onlinewallpaper.wallpaper.WallpaperUpdateResult
 
 /**
  * Fetches the configured image and applies it to the lock screen. Used both for the periodic
@@ -30,14 +31,25 @@ class WallpaperWorker(
         if (!manual && !settings.enabled) return Result.success()
 
         return try {
-            WallpaperUpdater(applicationContext).applyFrom(
+            val result = WallpaperUpdater(applicationContext).applyFrom(
                 url = settings.imageUrl,
                 fit = settings.frameFit,
                 horizontalPosition = settings.horizontalPosition,
                 verticalPosition = settings.verticalPosition,
                 background = settings.background,
+                previousImageHash = settings.lastImageHash,
             )
-            repository.recordSuccess(System.currentTimeMillis())
+            when (result) {
+                is WallpaperUpdateResult.Applied -> repository.recordSuccess(
+                    timestamp = System.currentTimeMillis(),
+                    imageHash = result.imageHash,
+                    lastModified = result.lastModified,
+                )
+                is WallpaperUpdateResult.Unchanged -> repository.recordUnchanged(
+                    timestamp = System.currentTimeMillis(),
+                    lastModified = result.lastModified,
+                )
+            }
             Result.success()
         } catch (e: CancellationException) {
             throw e

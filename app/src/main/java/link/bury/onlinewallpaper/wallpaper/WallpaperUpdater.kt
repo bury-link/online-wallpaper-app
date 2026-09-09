@@ -9,6 +9,11 @@ import link.bury.onlinewallpaper.data.UrlValidator
 import java.io.File
 import java.io.IOException
 
+sealed interface WallpaperUpdateResult {
+    data class Applied(val imageHash: String, val lastModified: String?) : WallpaperUpdateResult
+    data class Unchanged(val lastModified: String?) : WallpaperUpdateResult
+}
+
 /**
  * Downloads the configured image and applies it to the **lock screen only**
  * ([WallpaperManager.FLAG_LOCK]). The home screen wallpaper is never touched.
@@ -32,7 +37,8 @@ class WallpaperUpdater(
         horizontalPosition: Float,
         verticalPosition: Float,
         background: WallpaperBackground,
-    ): Unit = withContext(Dispatchers.IO) {
+        previousImageHash: String?,
+    ): WallpaperUpdateResult = withContext(Dispatchers.IO) {
         if (!UrlValidator.isValid(url)) {
             throw PermanentWallpaperException("Set a valid http(s) image URL first")
         }
@@ -48,7 +54,10 @@ class WallpaperUpdater(
         val temporaryFile = File.createTempFile("wallpaper", ".img", appContext.cacheDir)
         var bitmap: Bitmap? = null
         try {
-            downloader.download(url, temporaryFile)
+            val downloaded = downloader.download(url, temporaryFile)
+            if (ImageFingerprint.isUnchanged(previousImageHash, downloaded.sha256)) {
+                return@withContext WallpaperUpdateResult.Unchanged(downloaded.lastModified)
+            }
 
             val (targetWidth, targetHeight) = targetSize(wallpaperManager)
             val decoded = decodeDownsampled(temporaryFile, targetWidth, targetHeight)
@@ -82,6 +91,7 @@ class WallpaperUpdater(
                     "Could not apply the wallpaper: ${e.message ?: "system error"}", e
                 )
             }
+            WallpaperUpdateResult.Applied(downloaded.sha256, downloaded.lastModified)
         } finally {
             // Recycled only after setBitmap and the thumbnail write are done with it.
             bitmap?.recycle()
