@@ -53,6 +53,6 @@ Die Bild-URL wird lokal auf deinem Gerät gespeichert. Die App lädt das Bild di
 - App icon: 512 × 512 PNG, no transparency outside the safe area
 - Feature graphic: 1024 × 500 PNG/JPEG
 - At least 2 phone screenshots per locale, 16:9 or 9:16; use real app screens, no mocked UI
-- Support email: claude@bury.link
+- Support email: hallo-dev@bury.link
 - Category: Personalization
 - Privacy-policy URL must be live before submission
